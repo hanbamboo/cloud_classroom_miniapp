@@ -1,0 +1,162 @@
+<template>
+	<view>
+		<u-picker :show="deptPickerShow" :columns="deptList" keyName="deptName" @cancel="deptPickerShow=false"
+			@confirm="deptPickerConfirm"></u-picker>
+		<u-picker :show="teacherPickerShow" :columns="teacherList" keyName="nickName" @cancel="teacherPickerShow=false"
+			@confirm="teacherPickerConfirm"></u-picker>
+		<u-picker :show="courseTypePickerShow" :columns="courseTypeList" keyName="dictLabel"
+			@cancel="courseTypePickerShow=false" @confirm="courseTypePickerConfirm"></u-picker>
+		<u-datetime-picker :show="startCourseTimeShow" @cancel="startCourseTimeShow=false" @confirm="startCourseTimeConfirm" v-model="form.time" mode="datetime"></u-datetime-picker>
+		<u--form labelPosition="left" :model="form" ref="uForm" labelWidth="120">
+			<u-form-item label="开课学院" prop="deptId" borderBottom @click="deptPickerShow = true; ">
+				<text>{{!!form.deptId?form.deptName:'请选择'}}</text>
+				<u-icon slot="right" name="arrow-right"></u-icon>
+			</u-form-item>
+			<u-form-item v-if="!!form.deptId" label="开课教师" prop="teacherId" borderBottom
+				@click="teacherPickerShow = true; ">
+				<text>{{!!form.teacherId?form.teacherName:'请选择'}}</text>
+				<u-icon slot="right" name="arrow-right"></u-icon>
+			</u-form-item>
+			<u-form-item label="课程名" prop="name" borderBottom>
+				<u--input v-model="form.name" border="none" placeholder="课程名"></u--input>
+			</u-form-item>
+			<u-form-item label="课程描述" prop="desp" borderBottom>
+				<u-textarea v-model="form.desp" count placeholder="课程描述" maxlength="200" height="80" border="none"
+					holdKeyboard autoHeight></u-textarea>
+			</u-form-item>
+			<u-form-item label="课程性质" prop="type" borderBottom @click="courseTypePickerShow = true; ">
+				<text>{{!!form.type?form.typeName:'请选择'}}</text>
+				<u-icon slot="right" name="arrow-right"></u-icon>
+			</u-form-item>
+			<u-form-item label="上课时间" prop="time" borderBottom @click="startCourseTimeShow=true">
+				<text>{{!!form.time?form.timeFomat:'请选择'}}</text>
+				<u-icon slot="right" name="arrow-right"></u-icon>
+			</u-form-item>
+			<u-form-item label="备注" prop="remark" borderBottom>
+				<u-textarea v-model="form.remark" count placeholder="备注" maxlength="200" height="80" border="none"
+					holdKeyboard autoHeight></u-textarea>
+			</u-form-item>
+		</u--form>
+		<u-button type="primary" text="创建" @click="createClass"></u-button>
+
+	</view>
+</template>
+
+<script>
+	import {
+		listDept,
+	}
+	from '@/api/dept/dept'
+	import {
+		addRecord
+	}
+	from '@/api/class/record'
+	import {
+		listTeacher
+	} from '@/api/system/role'
+	import {
+		getDictInfo
+	} from '@/api/system/dict'
+	import {parseTime} from '@/utils/ruoyi'
+	export default {
+		data() {
+			return {
+				form: {
+				},
+				deptList: [],
+				teacherList: [],
+				courseTypeList: [],
+				deptPickerShow: false,
+				teacherPickerShow: false,
+				courseTypePickerShow: false,
+				startCourseTimeShow: false,
+			};
+
+		},
+		methods: {
+			getCourseTypeList() {
+				getDictInfo('class_course_type').then(res => {
+					this.courseTypeList = []
+					this.courseTypeList.push(res.data)
+				})
+			},
+			getDeptListData() {
+				listDept().then(res => {
+					this.deptList = []
+					this.deptList.push(res.data)
+				})
+			},
+			getTeacherListData(deptId) {
+				listTeacher({
+					deptId: deptId
+				}).then(res => {
+					this.teacherList = []
+					this.teacherList.push(res.data)
+				})
+			},
+			startCourseTimeConfirm(e){
+				this.form.time = e.value
+				this.form.timeFomat = parseTime(new Date(e.value))
+				this.startCourseTimeShow = false
+			},
+			teacherPickerConfirm(e) {
+				const index = e.indexs[0]
+				this.form.teacherId = this.teacherList[0][index].userId
+				this.form.teacherName = this.teacherList[0][index].nickName
+				this.teacherPickerShow = false
+			},
+			courseTypePickerConfirm(e) {
+				const index = e.indexs[0]
+				this.form.type = this.courseTypeList[0][index].dictValue
+				this.form.typeName = this.courseTypeList[0][index].dictLabel
+				this.courseTypePickerShow = false
+			},
+			deptPickerConfirm(e) {
+				const index = e.indexs[0]
+				this.form.deptId = this.deptList[0][index].deptId
+				this.form.deptName = this.deptList[0][index].deptName
+				this.deptPickerShow = false
+				this.getTeacherListData(this.form.deptId)
+			},
+			createClass() {
+				if (!this.form.name) {
+					this.$modal.msgError('未填写班级名')
+					return
+				}
+				if (!this.form.deptId) {
+					this.$modal.msgError('未选择学院')
+					return
+				}
+				const that = this
+				this.$modal.loading('正在创建新班级')
+				if (!this.form.remark) {
+					this.form.remark = '无'
+				}
+				if (!this.form.teacherId) {
+					this.form.teacherId = this.$store.state.user.user.userId
+				}
+				addRecord(this.form).then(res => {
+
+					this.$modal.msgSuccess(res.msg)
+					this.$tab.navigateBack()
+				}).finally(() => {
+					that.$modal.closeLoading()
+				})
+
+			}
+
+		},
+		onReady() {
+			this.getDeptListData()
+			this.getCourseTypeList()
+
+		},
+	};
+</script>
+<style>
+	page {
+		background: #ffffff;
+		width: 95%;
+		margin: 10px;
+	}
+</style>

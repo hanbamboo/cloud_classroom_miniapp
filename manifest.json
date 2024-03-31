@@ -36,7 +36,14 @@
                 ]
             },
             "ios" : {},
-            "sdkConfigs" : {}
+            "sdkConfigs" : {
+                "oauth" : {
+                    "weixin" : {
+                        "appid" : "wxc6ae97259321e5ae",
+                        "UniversalLinks" : ""
+                    }
+                }
+            }
         }
     },
     "quickapp" : {},

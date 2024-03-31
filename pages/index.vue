@@ -11,6 +11,7 @@
 	
   export default {
     onLoad: function() {
+		console.log(this.$store.state.user);
     }
   }
 </script>

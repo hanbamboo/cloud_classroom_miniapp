@@ -70,6 +70,27 @@
     "style": {
       "navigationBarTitleText": "浏览文本"
     }
+  },
+  {
+  	"path" : "pages/work/class/index",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "创建新班级"
+  	}
+  },
+  {
+  	"path" : "pages/work/class/mine",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "我的班级"
+  	}
+  },
+  {
+  	"path" : "pages/work/course/index",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "添加新课程"
+  	}
   }],
   "tabBar": {
     "color": "#000000",
@@ -96,7 +117,7 @@
   },
   "globalStyle": {
     "navigationBarTextStyle": "black",
-    "navigationBarTitleText": "RuoYi",
+    "navigationBarTitleText": "hanbamboo",
     "navigationBarBackgroundColor": "#FFFFFF"
   }
 }
