@@ -6,7 +6,7 @@
 		</u-swiper>
 		<uni-section title="班级管理" type="line"></uni-section>
 		<u-grid col="3">
-			<u-grid-item @click="toCreateClass">
+			<u-grid-item @click="toCreateClass" v-if="user.user.roles[0].roleKey!=='student'">
 				<u-icon name="plus" size="22"></u-icon>
 				<text class="grid-text">创建班级</text>
 			</u-grid-item>
@@ -21,20 +21,24 @@
 		</u-grid>
 		<uni-section title="课堂管理" type="line"></uni-section>
 		<u-grid col="3">
-			<u-grid-item @click="toCreateCourse">
+			<u-grid-item @click="toCreateCourse" v-if="user.user.roles[0].roleKey!=='student'">
 				<u-icon name="plus" size="22"></u-icon>
 				<text class="grid-text">创建课程</text>
+			</u-grid-item>
+			<u-grid-item @click="toChooseCourse">
+				<u-icon name="plus" size="22"></u-icon>
+				<text class="grid-text">选择课程</text>
 			</u-grid-item>
 			<u-grid-item>
 				<u-icon name="plus" size="22"></u-icon>
 				<text class="grid-text">我的课程</text>
 			</u-grid-item>
-			<u-grid-item>
+			<u-grid-item v-if="user.user.roles[0].roleKey!=='student'">
 				<u-icon name="man-add" size="22"></u-icon>
 				<text class="grid-text">发布通知</text>
 			</u-grid-item>
 
-			<u-grid-item>
+			<u-grid-item v-if="user.user.roles[0].roleKey!=='student'">
 				<u-icon name="list-dot" size="22"></u-icon>
 				<text class="grid-text">发布签到</text>
 
@@ -51,11 +55,7 @@
 				<u-icon name="man-add" size="22"></u-icon>
 				<text class="grid-text">历史通知</text>
 			</u-grid-item>
-			<u-grid-item>
-				<u-icon name="list-dot" size="22"></u-icon>
-				<text class="grid-text">审批记录</text>
-			</u-grid-item>
-			<u-grid-item>
+			<u-grid-item v-if="user.user.roles[0].roleKey!=='student'">
 				<u-icon name="list-dot" size="22"></u-icon>
 				<text class="grid-text">签到历史</text>
 			</u-grid-item>
@@ -67,6 +67,7 @@
 	export default {
 		data() {
 			return {
+				user: {},
 				myCustomStyle: {
 					width: '220rpx',
 					height: '220rpx'
@@ -88,6 +89,10 @@
 				]
 			}
 		},
+		onLoad() {
+			this.user = this.$store.state.user.userRegion
+			console.log('userRegion', this.user.user.roles[0].roleKey);
+		},
 		methods: {
 			clickBannerItem(item) {
 				console.info(item)
@@ -108,6 +113,12 @@
 			},
 			toCreateCourse() {
 				this.$tab.navigateTo(`/pages/work/course/index`)
+			},
+			toChooseCourse(){
+				this.$tab.navigateToWithParams(`/pages/work/course/choose`, {
+					deptId: this.$store.state.user.user.deptId,
+					roleKey:this.$store.state.user.user.roles[0].roleKey,
+				})
 			},
 		}
 	}

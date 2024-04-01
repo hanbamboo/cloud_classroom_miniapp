@@ -91,6 +91,13 @@
   	{
   		"navigationBarTitleText" : "添加新课程"
   	}
+  },
+  {
+  	"path" : "pages/work/course/choose",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "选择课程"
+  	}
   }],
   "tabBar": {
     "color": "#000000",

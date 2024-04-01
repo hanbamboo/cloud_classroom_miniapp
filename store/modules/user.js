@@ -16,6 +16,7 @@ const baseUrl = config.baseUrl
 
 const user = {
 	state: {
+		userRegion:storage.get(constant.userRegion),
 		user: storage.get(constant.user),
 		token: getToken(),
 		name: storage.get(constant.name),
@@ -25,6 +26,9 @@ const user = {
 	},
 
 	mutations: {
+		SET_REGION_USER: (state, userRegion) => {
+			state.userRegion = userRegion
+		},
 		SET_USER: (state, user) => {
 			state.user = user
 		},
@@ -87,6 +91,7 @@ const user = {
 					} else {
 						commit('SET_ROLES', ['ROLE_DEFAULT'])
 					}
+					commit('SET_REGION_USER', res)
 					commit('SET_USER', user)
 					commit('SET_NAME', username)
 					commit('SET_AVATAR', avatar)
@@ -108,6 +113,7 @@ const user = {
 					commit('SET_TOKEN', '')
 					commit('SET_ROLES', [])
 					commit('SET_PERMISSIONS', [])
+					commit('SET_REGION_USER', {})
 					removeToken()
 					storage.clean()
 					resolve()
