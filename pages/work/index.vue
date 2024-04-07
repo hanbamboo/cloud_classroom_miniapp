@@ -10,10 +10,6 @@
 				<u-icon name="plus" size="22"></u-icon>
 				<text class="grid-text">创建班级</text>
 			</u-grid-item>
-			<u-grid-item>
-				<u-icon name="man-add" size="22"></u-icon>
-				<text class="grid-text">加入班级</text>
-			</u-grid-item>
 			<u-grid-item @click="toMyClass">
 				<u-icon name="list-dot" size="22"></u-icon>
 				<text class="grid-text">我的班级</text>
@@ -114,8 +110,10 @@
 			toCreateCourse() {
 				this.$tab.navigateTo(`/pages/work/course/index`)
 			},
+			
 			toChooseCourse(){
 				this.$tab.navigateToWithParams(`/pages/work/course/choose`, {
+					id:this.$store.state.user.user.userId,
 					deptId: this.$store.state.user.user.deptId,
 					roleKey:this.$store.state.user.user.roles[0].roleKey,
 				})

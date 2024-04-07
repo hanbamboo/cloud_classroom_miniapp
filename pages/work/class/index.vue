@@ -105,7 +105,6 @@
 		},
 		onReady() {
 			this.getDeptListData()
-		
 		},
 	};
 </script>
