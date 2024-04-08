@@ -12,8 +12,7 @@
 				<u-form-item label="课程教师" prop="teacherId" borderBottom style="width: 100%;">
 					<text>{{form.teacherName}}</text>
 				</u-form-item>
-				<u-form-item label="持续时间(分钟)" prop="duration" borderBottom @click="checkinTimeShow = true; "
-					style="width: 100%;">
+				<u-form-item label="持续时间(分钟)" prop="duration" borderBottom style="width: 100%;">
 					<u-number-box :min="5" :max="30" :step="1" integer v-model="duration"></u-number-box>
 					<u-icon slot="right" name="arrow-right"></u-icon>
 				</u-form-item>
@@ -52,13 +51,23 @@
 			<u-grid-item :custom-style="myStyle" v-else>课程签到</u-grid-item>
 			<u-grid-item :custom-style="myStyle">审批</u-grid-item>
 		</u-grid>
+		<view v-if="checkInfoNow" class="check-in-box">
+			<view class="name text-black">{{checkInfoNow.courseName}}</view>
+			<view class="teacher text-grey">{{checkInfoNow.teacherName}}</view>
+			<view class="right">
+				<view class="method">{{checkInfoNow.methodName}}</view>
+				<u-count-down :time="checkInfoNow.timeDiff" format="mm:ss"></u-count-down>
+			</view>
+
+		</view>
 	</view>
 </template>
 
 <script>
 	import config from '@/config'
 	import {
-		addCheckin
+		addCheckin,
+		getCurrentCheckin
 	} from '@/api/checkin/checkin'
 	import {
 		getDictInfo
@@ -76,12 +85,12 @@
 		onLoad: function() {
 			console.log(this.$store.state.user);
 			this.roleKey = this.$store.state.user.user.roles[0].roleKey
-
 		},
 		onReady() {
 			this.BASE_URL = config.baseUrl
 			this.getDict()
 			this.getCourseList()
+			this.getCheckIn()
 		},
 		data() {
 			return {
@@ -102,10 +111,28 @@
 				courseChooseShow: false,
 				checkinMethodActions: [],
 				courseChooseList: [],
-
+				checkInfoNow: null,
 			}
 		},
 		methods: {
+			getCheckIn() {
+				getCurrentCheckin({
+					roleKey: this.roleKey,
+					teacherId: this.$store.state.user.user.userId
+				}).then(res => {
+					if (!!res.data) {
+						this.checkInfoNow = res.data
+						const time1 = new Date().getTime();
+						const time2 = new Date(this.checkInfoNow.endTime).getTime();
+						const timeDiff = time2 - time1
+						this.checkInfoNow.timeDiff = Math.abs(time2 - time1);
+
+						if (timeDiff <= 0) {
+							this.checkInfoNow = null
+						}
+					}
+				})
+			},
 			getDict() {
 				getDictInfo('class_checkin_type').then(res => {
 					this.checkinMethodActions = []
@@ -123,11 +150,12 @@
 				this.form.id = uni.$u.guid(20)
 				const date = new Date()
 				this.form.startTime = parseTime(date)
-				date.setMinutes(date.getMinutes() + 10)
+				date.setMinutes(date.getMinutes() + this.duration)
 				this.form.endTime = parseTime(date)
 				addCheckin(this.form).then(res => {
 					this.$modal.msgSuccess(res.msg)
 					this.checkinAddShow = false
+					this.getCheckIn()
 				})
 			},
 			getCourseList() {
@@ -153,6 +181,46 @@
 	}
 </script>
 <style scoped lang="scss">
+	.check-in-box {
+		border: #5473E8 1px solid;
+		border-radius: 8px;
+		position: relative;
+		padding: 8px;
+		margin: 5px;
+		background: linear-gradient(-170deg, #5473E8, #ffffff);
+
+		.name {
+			font-weight: bold;
+			font-size: 20px;
+			padding: 5px;
+		}
+
+		.teacher {
+			padding: 5px;
+		}
+
+		.right {
+			position: absolute;
+			right: 20px;
+			top: 0;
+			transform: translateY(40%);
+			height: 50%;
+
+			.method {
+				font-size: 16px;
+				padding: 5px;
+				text-align: center;
+			}
+
+			::v-deep .u-count-down__text {
+				text-align: center;
+				color: #5473E8 !important;
+				font-size: 24px;
+				font-weight: bold;
+			}
+		}
+	}
+
 	.wrapper {
 		padding: 16px;
 		margin-top: 8%;

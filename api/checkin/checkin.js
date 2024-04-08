@@ -9,6 +9,15 @@ export function listCheckin(query) {
   })
 }
 
+// 查询当前签到信息
+export function getCurrentCheckin(data) {
+  return request({
+    url: '/checkIn/checkin/current',
+    method: 'post',
+    data: data
+  })
+}
+
 // 查询签到信息详细
 export function getCheckin(id) {
   return request({
