@@ -1,8 +1,8 @@
 // 应用全局配置
 module.exports = {
   // baseUrl: 'https://vue.ruoyi.vip/prod-api',
-  // baseUrl: 'http://localhost:8080',
-   baseUrl: 'http://192.168.1.6:8080',
+  baseUrl: 'http://localhost:8080',
+   // baseUrl: 'http://192.168.1.6:8080',
   // 应用信息
   appInfo: {
     // 应用名称

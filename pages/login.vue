@@ -67,14 +67,16 @@
 				register: false,
 				globalConfig: getApp().globalData.config,
 				loginForm: {
-					username: "admin",
-					password: "admin123",
+					username: "",
+					password: "",
 					code: "",
 					uuid: ''
 				}
 			}
 		},
 		created() {
+			this.loginForm.username =  uni.getStorageSync('username');
+			this.loginForm.password =  uni.getStorageSync('password');
 			this.getCode()
 		},
 		methods: {
@@ -111,6 +113,8 @@
 				} else if (this.loginForm.code === "" && this.captchaEnabled) {
 					this.$modal.msgError("请输入验证码")
 				} else {
+					uni.setStorageSync("username",this.loginForm.username)
+					uni.setStorageSync("password",this.loginForm.password)
 					this.$modal.loading("登录中，请耐心等待...")
 					this.pwdLogin()
 				}

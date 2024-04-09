@@ -51,7 +51,7 @@
 			<u-grid-item :custom-style="myStyle" v-else>课程签到</u-grid-item>
 			<u-grid-item :custom-style="myStyle">审批</u-grid-item>
 		</u-grid>
-		<view v-if="checkInfoNow" class="check-in-box">
+		<view v-if="checkInfoNow" class="check-in-box" @click="checkInDetail">
 			<view class="name text-black">{{checkInfoNow.courseName}}</view>
 			<view class="teacher text-grey">{{checkInfoNow.teacherName}}</view>
 			<view class="right">
@@ -78,9 +78,6 @@
 	import {
 		parseTime
 	} from '@/utils/ruoyi'
-	import {
-		randomUUID
-	} from 'crypto'
 	export default {
 		onLoad: function() {
 			console.log(this.$store.state.user);
@@ -176,6 +173,17 @@
 				this.form.method = this.checkinMethodActions[0][index].dictValue
 				this.form.methodName = this.checkinMethodActions[0][index].dictLabel
 				this.checkinMethodShow = false
+			},
+			checkInDetail(){
+				if(this.roleKey==='student'){
+					this.$tab.navigateToWithParams(`/pages/checkin/checkin`, {
+						id:this.$store.state.user.user.userId,
+						courseId:this.checkInfoNow.courseId,
+						roleKey:this.$store.state.user.user.roles[0].roleKey,
+					})
+				}else{
+					
+				}
 			}
 		}
 	}
@@ -187,7 +195,7 @@
 		position: relative;
 		padding: 8px;
 		margin: 5px;
-		background: linear-gradient(-170deg, #5473E8, #ffffff);
+		background: linear-gradient(-170deg, #B3C0F4, #ffffff);
 
 		.name {
 			font-weight: bold;

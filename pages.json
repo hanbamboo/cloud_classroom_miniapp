@@ -98,6 +98,13 @@
   	{
   		"navigationBarTitleText" : "选择课程"
   	}
+  },
+  {
+  	"path" : "pages/checkin/checkin",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "课程签到"
+  	}
   }],
   "tabBar": {
     "color": "#000000",
