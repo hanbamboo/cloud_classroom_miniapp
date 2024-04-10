@@ -64,11 +64,11 @@ class websocketUtil {
 	}
 	//开启心跳检测
 	start(){
-		this.heartbeatInterval = setTimeout(()=>{
-			this.data={value:"传输内容",method:"方法名称"}
-			console.log(this.data)
-			this.send(JSON.stringify(this.data));
-		},this.timeout)
+		// this.heartbeatInterval = setTimeout(()=>{
+			// this.data={value:"传输内容",method:"方法名称"}
+			// console.log(this.data)
+			// this.send(JSON.stringify(this.data));
+		// },this.timeout)
 	}
 	//重新连接
 	reconnect(){

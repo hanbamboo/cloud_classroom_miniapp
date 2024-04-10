@@ -10,6 +10,15 @@ export function listRecord(query) {
   })
 }
 
+// 查询学生拥有的课程列表
+export function listRecordApp(query) {
+  return request({
+    url: '/course/record/app/list',
+    method: 'get',
+    params: query
+  })
+}
+
 // 查询学生拥有的课程详细
 export function getRecord(id) {
   return request({

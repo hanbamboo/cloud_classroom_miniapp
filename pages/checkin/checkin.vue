@@ -1,8 +1,10 @@
 <template>
-	<view>
-		<text>{{checkInfoNow.courseName}}</text>
-		<u-button @click="send" type="primary"><u-count-down :time="checkInfoNow.timeDiff"
-				format="mm:ss"></u-count-down></u-button>
+	<view >
+		<view class="title">
+			<view class="courseName text-black">{{checkInfoNow.courseName}}</view>
+			<view class="teacherName text-grey">{{checkInfoNow.teacherName}}</view>
+		</view>
+		<u-button type="primary"><u-count-down :time="checkInfoNow.timeDiff" format="mm:ss"></u-count-down></u-button>
 	</view>
 </template>
 
@@ -14,9 +16,9 @@
 		getCurrentCheckin
 	} from '@/api/checkin/checkin'
 	import {
-		getInfo
+		listRecordApp
 	}
-	from '@/api/course/info'
+	from '@/api/course/record'
 	export default {
 		data() {
 			return {
@@ -26,6 +28,7 @@
 				checkInfoNow: null,
 				courseInfo: null,
 				socket: null,
+				student:[],
 			};
 		},
 		onLoad(option) {
@@ -33,11 +36,12 @@
 			this.roleKey = option.roleKey
 			this.courseId = option.courseId
 			this.getCheckIn()
+			this.getStudent()
 			this.socket = new wsRequest(
-				'ws://127.0.0.1:8080/webSocket/111',
+				'ws://127.0.0.1:8080/webSocket/' + option.courseId + "@" + option.id,
 				10000
 			);
-
+			
 			this.watchSocket();
 		},
 		destroyed() {
@@ -47,19 +51,29 @@
 
 		},
 		methods: {
-			send(){
-				let data =  {value:"传输内容",method:"方法名称"};
-				console.log(this.socket);
-							this.socket.send( JSON.stringify(data)  );
+			getStudent(){
+				listRecordApp({
+					courseId:this.courseId
+				}).then(res=>{
+					this.student = res.data
+				})
 			},
 			watchSocket() {
 				this.socket.getMessage(opt => {
-					console.warn("消息接收：", opt);
-				})
-			},
-			getCourseInfo() {
-				getInfo(this.courseId).then(res => {
-					this.courseInfo = res.data
+					// console.warn("消息接收：", opt);
+					switch (opt.msgType) {
+						case 'heartbeat_ping':
+							const pong = {
+								"message": "keep living",
+								"msgType": "heartbeat_pong",
+								"sessionId": msg.sessionId,
+								"userId": this.mineId
+							}
+							this.socket.send(JSON.stringify(pong));
+							break;
+						case 'heartbeat_pong':
+							break;
+					}
 				})
 			},
 			getCheckIn() {
@@ -73,7 +87,16 @@
 						const time2 = new Date(this.checkInfoNow.endTime).getTime();
 						const timeDiff = time2 - time1
 						this.checkInfoNow.timeDiff = Math.abs(time2 - time1);
-						console.log(this.checkInfoNow);
+						const checkinReady = {
+							"message": {
+								courseId:res.data.courseId,
+								checkId:res.data.id,
+								method:res.data.method
+							},
+							"msgType": "checkin_ready",
+							"userId": this.mineId
+						}
+						this.socket.send(JSON.stringify(checkinReady))
 						if (timeDiff <= 0) {
 							this.checkInfoNow = null
 						}
@@ -84,6 +107,24 @@
 	}
 </script>
 <style scoped lang="scss">
+	.title {
+		margin: 35px;
+
+		.courseName {
+			font-weight: bold;
+			font-size: 24px;
+			text-align: center;
+			letter-spacing: 2px;
+		}
+
+		.teacherName {
+			font-size: 18px;
+			text-align: center;
+
+		}
+	}
+
+
 	::v-deep .u-button--primary {
 		height: 200px !important;
 		width: 200px !important;
@@ -99,5 +140,12 @@
 	}
 </style>
 <style lang="scss">
-
+	page {
+		display: flex;
+		flex-direction: column;
+		box-sizing: border-box;
+		background-color: #fff;
+		min-height: 100%;
+		height: auto;
+	}
 </style>
