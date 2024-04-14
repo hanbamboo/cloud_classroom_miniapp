@@ -51,7 +51,7 @@
 				<u-icon name="man-add" size="22"></u-icon>
 				<text class="grid-text">历史通知</text>
 			</u-grid-item>
-			<u-grid-item v-if="user.user.roles[0].roleKey!=='student'">
+			<u-grid-item v-if="user.user.roles[0].roleKey!=='student'" @click="tocheckinHistory">
 				<u-icon name="list-dot" size="22"></u-icon>
 				<text class="grid-text">签到历史</text>
 			</u-grid-item>
@@ -110,7 +110,6 @@
 			toCreateCourse() {
 				this.$tab.navigateTo(`/pages/work/course/index`)
 			},
-			
 			toChooseCourse(){
 				this.$tab.navigateToWithParams(`/pages/work/course/choose`, {
 					id:this.$store.state.user.user.userId,
@@ -118,6 +117,11 @@
 					roleKey:this.$store.state.user.user.roles[0].roleKey,
 				})
 			},
+			tocheckinHistory(){
+				this.$tab.navigateToWithParams(`/pages/checkin/history`,{
+					teacherId:this.$store.state.user.user.userId
+				})
+			}
 		}
 	}
 </script>

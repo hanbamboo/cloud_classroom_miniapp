@@ -46,17 +46,20 @@
 		<text class="title text-blue">云端课堂</text>
 		<u-notice-bar text="欢迎使用云端课堂,这里是显示系统、教师发布的通知" custom-style="margin:20px 0"></u-notice-bar>
 		<text class="sub-title text-black">我的课程</text>
-		<u-grid :border="false" col="2">
-			<u-grid-item :custom-style="myStyle" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</u-grid-item>
-			<u-grid-item :custom-style="myStyle" v-else>课程签到</u-grid-item>
-			<u-grid-item :custom-style="myStyle">审批</u-grid-item>
-		</u-grid>
-		<view v-if="checkInfoNow" class="check-in-box" @click="checkInDetail">
+
+		<view class="tool" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</view>
+		<view class="tool" v-if="roleKey==='student'&&checkInfoNow==null" @click="checkMyCheckin">查询签到</view>
+		<view class="tool" v-if="roleKey!=='student'">我的审批（0）</view>
+		<view class="tool" v-else>发起审批</view>
+
+		<view v-if="checkInfoNow!=null" class="check-in-box" @click="checkInDetail">
 			<view class="name text-black">{{checkInfoNow.courseName}}</view>
 			<view class="teacher text-grey">{{checkInfoNow.teacherName}}</view>
 			<view class="right">
 				<view class="method">{{checkInfoNow.methodName}}</view>
-				<u-count-down :time="checkInfoNow.timeDiff" format="mm:ss"></u-count-down>
+				<u-count-down ref="countDown1" v-if="!!checkInfoNow.timeDiff&&finalTime==0"
+					:time="checkInfoNow.timeDiff" @finish="timeDiffFinish" format="mm:ss"></u-count-down>
+				<u-count-down v-else :time="finalTime" format="[迟到]mm:ss" @finish="checkInfoNow=null"></u-count-down>
 			</view>
 
 		</view>
@@ -64,6 +67,7 @@
 </template>
 
 <script>
+	import wsRequest from '@/utils/websocket'
 	import config from '@/config'
 	import {
 		addCheckin,
@@ -82,6 +86,13 @@
 		onLoad: function() {
 			console.log(this.$store.state.user);
 			this.roleKey = this.$store.state.user.user.roles[0].roleKey
+			const url = 'ws://127.0.0.1:8080/webSocket/' + this.$store.state.user.user.userId
+			const time = 5000; // 假设时间为5000毫秒
+
+			wsRequest.init(url, time);
+
+			this.watchSocket();
+
 		},
 		onReady() {
 			this.BASE_URL = config.baseUrl
@@ -93,14 +104,8 @@
 			return {
 				roleKey: '',
 				BASE_URL: '',
-				myStyle: {
-					height: '50px',
-					width: '45%',
-					margin: '5px',
-					border: '1px solid #5473E8',
-					borderRadius: '8px'
-				},
 				duration: 5,
+				finalTime: 0,
 				form: {},
 				checkinMethodShow: false,
 				checkinAddShow: false,
@@ -112,6 +117,47 @@
 			}
 		},
 		methods: {
+			checkMyCheckin(){
+				this.$modal.loading("加载中")
+				this.getCheckIn()
+				this.$modal.closeLoading()
+				if(this.checkInfoNow==null){
+					this.$modal.showToast("暂无最新签到")
+				}
+			},
+			watchSocket() {
+				wsRequest.getMessage(opt => {
+					// console.warn("消息接收：", opt);
+					const data = JSON.parse(opt.data)
+					switch (data.msgType) {
+						case 'heartbeat_ping':
+							const pong = {
+								"message": "keep living",
+								"msgType": "heartbeat_pong",
+								"userId": this.mineId
+							}
+							wsRequest.send(JSON.stringify(pong));
+							break;
+						case 'heartbeat_pong':
+							break;
+
+					}
+				})
+			},
+			timeDiffFinish() {
+				console.log('结束');
+				const time1 = new Date().getTime();
+				const time2 = new Date(this.checkInfoNow.endTime).getTime();
+				console.log(time1 - time2);
+				if (Math.abs(time1 - time2) > 300000) {
+					this.checkInfoNow = null
+					return
+				}
+				this.finalTime = 300000 - (Math.abs(time1 - time2));
+				if (this.finalTime <= 0) {
+					this.checkInfoNow = null
+				}
+			},
 			getCheckIn() {
 				getCurrentCheckin({
 					roleKey: this.roleKey,
@@ -119,13 +165,27 @@
 				}).then(res => {
 					if (!!res.data) {
 						this.checkInfoNow = res.data
-						const time1 = new Date().getTime();
+						this.finalTime = 0
+						let time1 = new Date().getTime();
 						const time2 = new Date(this.checkInfoNow.endTime).getTime();
 						const timeDiff = time2 - time1
 						this.checkInfoNow.timeDiff = Math.abs(time2 - time1);
 
 						if (timeDiff <= 0) {
-							this.checkInfoNow = null
+							time1 = new Date().getTime();
+							console.log(time1 - time2);
+							if (Math.abs(time1 - time2) > 300000) {
+								this.checkInfoNow = null
+								return
+							}
+							this.finalTime = 300000 - (Math.abs(time1 - time2));
+
+							if (this.finalTime < 0) {
+
+								this.checkInfoNow = null
+							}
+
+
 						}
 					}
 				})
@@ -174,21 +234,34 @@
 				this.form.methodName = this.checkinMethodActions[0][index].dictLabel
 				this.checkinMethodShow = false
 			},
-			checkInDetail(){
-				if(this.roleKey==='student'){
+			checkInDetail() {
+				if (this.roleKey === 'student') {
 					this.$tab.navigateToWithParams(`/pages/checkin/checkin`, {
-						id:this.$store.state.user.user.userId,
-						courseId:this.checkInfoNow.courseId,
-						roleKey:this.$store.state.user.user.roles[0].roleKey,
+						id: this.$store.state.user.user.userId,
+						courseId: this.checkInfoNow.courseId,
+						roleKey: this.$store.state.user.user.roles[0].roleKey,
+						checkinId: this.checkInfoNow.id
 					})
-				}else{
-					
+				} else {
+
 				}
 			}
 		}
 	}
 </script>
 <style scoped lang="scss">
+	.tool {
+		height: 80px;
+		text-align: center;
+		width: 100%;
+		margin: 5px 0 10px 0;
+		border: 1px solid #5473E8;
+		border-radius: 8px;
+		font-size: 18px;
+		line-height: 80px;
+		letter-spacing: 2px;
+	}
+
 	.check-in-box {
 		border: #5473E8 1px solid;
 		border-radius: 8px;
@@ -221,11 +294,12 @@
 			}
 
 			::v-deep .u-count-down__text {
-				text-align: center;
 				color: #5473E8 !important;
+				text-align: center;
 				font-size: 24px;
 				font-weight: bold;
 			}
+
 		}
 	}
 

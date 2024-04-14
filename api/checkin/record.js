@@ -9,6 +9,39 @@ export function listRecord(query) {
   })
 }
 
+export function listRecordApp(query) {
+  return request({
+    url: '/checkIn/record/app/list',
+    method: 'get',
+    params: query
+  })
+}
+
+export function listRecordAppRecord(query) {
+  return request({
+    url: '/checkIn/record/app/record',
+    method: 'get',
+    params: query
+  })
+}
+
+// 签到
+export function getRecordAppCheckin(data) {
+  return request({
+    url: '/checkIn/record/app/checkin',
+    method: 'post',
+    data: data
+  })
+}
+// 签到数据是否签到
+export function getRecordAppCheckinRecord(checkinId,studentId) {
+  return request({
+    url: '/checkIn/record/'+checkinId+"/"+studentId,
+    method: 'get',
+  })
+}
+
+
 // 查询签到明细详细
 export function getRecord(id) {
   return request({

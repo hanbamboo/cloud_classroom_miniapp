@@ -18,6 +18,14 @@ export function listRecordApp(query) {
     params: query
   })
 }
+// 签到的学生数据
+export function listRecordAppCheckin(query) {
+  return request({
+    url: '/course/record/app/checkin',
+    method: 'get',
+    params: query
+  })
+}
 
 // 查询学生拥有的课程详细
 export function getRecord(id) {

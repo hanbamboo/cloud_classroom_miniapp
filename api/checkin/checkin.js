@@ -8,6 +8,13 @@ export function listCheckin(query) {
     params: query
   })
 }
+export function listCheckinApp(query) {
+  return request({
+    url: '/checkIn/checkin/app/list',
+    method: 'get',
+    params: query
+  })
+}
 
 // 查询当前签到信息
 export function getCurrentCheckin(data) {

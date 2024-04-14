@@ -4,9 +4,9 @@ class websocketUtil {
 		this.url = url //地址
 		this.data = null
 		//心跳检测
-		this.timeout= time //多少秒执行检测
-		this.heartbeatInterval= null //检测服务器端是否还活着
-		this.reconnectTimeOut= null //重连之后多久再次重连
+		this.timeout = time //多少秒执行检测
+		this.heartbeatInterval = null //检测服务器端是否还活着
+		this.reconnectTimeOut = null //重连之后多久再次重连
 
 		try {
 			return this.connectSocketInit()
@@ -16,12 +16,22 @@ class websocketUtil {
 			this.reconnect();
 		}
 	}
-
+	init(url, time) {
+	        this.url = url;
+	        this.timeout = time;
+	        try {
+	            this.connectSocketInit();
+	        } catch (e) {
+	            console.log('catch');
+	            this.is_open_socket = false;
+	            this.reconnect();
+	        }
+	    }
 	// 进入这个页面的时候创建websocket连接【整个页面随时使用】
 	connectSocketInit() {
 		this.socketTask = uni.connectSocket({
 			url: this.url,
-			success:()=>{
+			success: () => {
 				console.log("正准备建立websocket中...");
 				// 返回实例
 				return this.socketTask
@@ -51,9 +61,9 @@ class websocketUtil {
 			this.reconnect();
 		})
 	}
-	
+
 	//发送消息
-	send(value){
+	send(value) {
 		// 注：只有连接正常打开中 ，才能正常成功发送消息
 		this.socketTask.send({
 			data: value,
@@ -63,23 +73,26 @@ class websocketUtil {
 		});
 	}
 	//开启心跳检测
-	start(){
+	start() {
 		// this.heartbeatInterval = setTimeout(()=>{
-			// this.data={value:"传输内容",method:"方法名称"}
-			// console.log(this.data)
-			// this.send(JSON.stringify(this.data));
+		// this.data={value:"传输内容",method:"方法名称"}
+		// console.log(this.data)
+		// this.send(JSON.stringify(this.data));
 		// },this.timeout)
 	}
 	//重新连接
-	reconnect(){
+	reconnect() {
 		//停止发送心跳
 		clearInterval(this.heartbeatInterval)
 		//如果不是人为关闭的话，进行重连
-		if(!this.is_open_socket){
-			this.reconnectTimeOut = setTimeout(()=>{
+		if (!this.is_open_socket) {
+			this.reconnectTimeOut = setTimeout(() => {
 				this.connectSocketInit();
-			},3000)
+			}, 3000)
 		}
+	}
+	close() {
+		this.socketTask.close()
 	}
 	//外部获取消息
 	getMessage(callback) {
@@ -87,7 +100,10 @@ class websocketUtil {
 			return callback(res)
 		})
 	}
- 
+
 }
 
-module.exports = websocketUtil
+const instance = new websocketUtil()
+// Object.freeze(instance);
+
+module.exports = instance;
