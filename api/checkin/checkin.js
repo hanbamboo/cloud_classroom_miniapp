@@ -25,6 +25,14 @@ export function getCurrentCheckin(data) {
   })
 }
 
+export function cancleCheckin(data) {
+  return request({
+    url: '/checkIn/checkin/app/checkin/cancle',
+    method: 'get',
+    params: data
+  })
+}
+
 // 查询签到信息详细
 export function getCheckin(id) {
   return request({

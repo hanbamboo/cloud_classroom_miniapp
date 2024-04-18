@@ -50,7 +50,7 @@
 		<view class="tool" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</view>
 		<view class="tool" v-if="roleKey==='student'&&checkInfoNow==null" @click="checkMyCheckin">查询签到</view>
 		<view class="tool" v-if="roleKey!=='student'">我的审批（0）</view>
-		<view class="tool" v-else>发起审批</view>
+		<view class="tool" v-else @click="toCreateApprove">发起审批</view>
 
 		<view v-if="checkInfoNow!=null" class="check-in-box" @click="checkInDetail">
 			<view class="name text-black">{{checkInfoNow.courseName}}</view>
@@ -117,11 +117,11 @@
 			}
 		},
 		methods: {
-			checkMyCheckin(){
+			checkMyCheckin() {
 				this.$modal.loading("加载中")
 				this.getCheckIn()
 				this.$modal.closeLoading()
-				if(this.checkInfoNow==null){
+				if (this.checkInfoNow == null) {
 					this.$modal.showToast("暂无最新签到")
 				}
 			},
@@ -235,16 +235,17 @@
 				this.checkinMethodShow = false
 			},
 			checkInDetail() {
-				if (this.roleKey === 'student') {
-					this.$tab.navigateToWithParams(`/pages/checkin/checkin`, {
-						id: this.$store.state.user.user.userId,
-						courseId: this.checkInfoNow.courseId,
-						roleKey: this.$store.state.user.user.roles[0].roleKey,
-						checkinId: this.checkInfoNow.id
-					})
-				} else {
 
-				}
+				this.$tab.navigateToWithParams(`/pages/checkin/checkin`, {
+					id: this.$store.state.user.user.userId,
+					courseId: this.checkInfoNow.courseId,
+					roleKey: this.$store.state.user.user.roles[0].roleKey,
+					checkinId: this.checkInfoNow.id
+				})
+
+			},
+			toCreateApprove() {
+				this.$tab.navigateTo(`/pages/approve/create`)
 			}
 		}
 	}

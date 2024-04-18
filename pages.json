@@ -112,6 +112,13 @@
   	{
   		"navigationBarTitleText" : "签到历史"
   	}
+  },
+  {
+  	"path" : "pages/approve/create",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "新的审批"
+  	}
   }],
   "tabBar": {
     "color": "#000000",
