@@ -17,6 +17,20 @@ export function getRecord(id) {
   })
 }
 
+export function getRecordNum(id) {
+  return request({
+    url: '/approval/record/num/' + id,
+    method: 'get'
+  })
+}
+export function getRecordApp(data) {
+  return request({
+    url: '/approval/record/app/get',
+    method: 'get',
+	params:data
+  })
+}
+
 // 新增审批结果
 export function addRecord(data) {
   return request({

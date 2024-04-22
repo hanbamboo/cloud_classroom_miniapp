@@ -119,6 +119,20 @@
   	{
   		"navigationBarTitleText" : "新的审批"
   	}
+  },
+  {
+  	"path" : "pages/notification/index",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "消息"
+  	}
+  },
+  {
+  	"path" : "pages/approve/approve",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "我的审批"
+  	}
   }],
   "tabBar": {
     "color": "#000000",
@@ -135,7 +149,13 @@
         "iconPath": "static/images/tabbar/work.png",
         "selectedIconPath": "static/images/tabbar/work_.png",
         "text": "工作台"
-      }, {
+      },  {
+        "pagePath": "pages/notification/index",
+        "iconPath": "static/images/tabbar/work.png",
+        "selectedIconPath": "static/images/tabbar/work_.png",
+        "text": "消息"
+      }, 
+	  {
         "pagePath": "pages/mine/index",
         "iconPath": "static/images/tabbar/mine.png",
         "selectedIconPath": "static/images/tabbar/mine_.png",

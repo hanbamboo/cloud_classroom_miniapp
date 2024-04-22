@@ -45,11 +45,11 @@
 			@confirm="checkinMethodConfirm"></u-picker>
 		<text class="title text-blue">云端课堂</text>
 		<u-notice-bar text="欢迎使用云端课堂,这里是显示系统、教师发布的通知" custom-style="margin:20px 0"></u-notice-bar>
-		<text class="sub-title text-black">我的课程</text>
+		<text class="sub-title text-black">我的课堂</text>
 
 		<view class="tool" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</view>
 		<view class="tool" v-if="roleKey==='student'&&checkInfoNow==null" @click="checkMyCheckin">查询签到</view>
-		<view class="tool" v-if="roleKey!=='student'">我的审批（0）</view>
+		<view class="tool" v-if="roleKey!=='student'" @click="toMyApprove">我的审批（<span :class="approvalNum?`approval-num`:''">{{approvalNum}}</span>）</view>
 		<view class="tool" v-else @click="toCreateApprove">发起审批</view>
 
 		<view v-if="checkInfoNow!=null" class="check-in-box" @click="checkInDetail">
@@ -82,6 +82,9 @@
 	import {
 		parseTime
 	} from '@/utils/ruoyi'
+	import {
+		getRecordNum
+	} from '@/api/approval/record'
 	export default {
 		onLoad: function() {
 			console.log(this.$store.state.user);
@@ -92,13 +95,16 @@
 			wsRequest.init(url, time);
 
 			this.watchSocket();
-
+			if (this.roleKey !== 'student') {
+				this.getMyApprovel()
+			}
 		},
 		onReady() {
 			this.BASE_URL = config.baseUrl
 			this.getDict()
 			this.getCourseList()
 			this.getCheckIn()
+
 		},
 		data() {
 			return {
@@ -114,6 +120,8 @@
 				checkinMethodActions: [],
 				courseChooseList: [],
 				checkInfoNow: null,
+				approvalNum: 0,
+
 			}
 		},
 		methods: {
@@ -235,7 +243,6 @@
 				this.checkinMethodShow = false
 			},
 			checkInDetail() {
-
 				this.$tab.navigateToWithParams(`/pages/checkin/checkin`, {
 					id: this.$store.state.user.user.userId,
 					courseId: this.checkInfoNow.courseId,
@@ -246,6 +253,14 @@
 			},
 			toCreateApprove() {
 				this.$tab.navigateTo(`/pages/approve/create`)
+			},
+			getMyApprovel() {
+				getRecordNum(this.$store.state.user.user.userId).then(res => {
+					this.approvalNum = res.data
+				})
+			},
+			toMyApprove(){
+				this.$tab.navigateTo(`/pages/approve/approve`)
 			}
 		}
 	}
@@ -261,6 +276,13 @@
 		font-size: 18px;
 		line-height: 80px;
 		letter-spacing: 2px;
+
+		.approval-num {
+			background: #e54d42;
+			color: #ffffff;
+			border-radius: 8px;
+			padding: 8px;
+		}
 	}
 
 	.check-in-box {

@@ -6,7 +6,6 @@
 			@cancel="startTimeShow = false"></u-datetime-picker>
 		<u-datetime-picker :show="endTimeShow" v-model="form.endTime" mode="datetime" @confirm="setEndTime"
 			@cancel="endTimeShow = false"></u-datetime-picker>
-
 		<u--form labelPosition="left" :model="form" ref="uForm" labelWidth="120">
 			<u-form-item label="请假类型" prop="deptId" borderBottom @click="approvePickerShow = true; ">
 				<text>{{!!form.type?form.typeName:'请选择'}}</text>
@@ -20,17 +19,18 @@
 				<text>{{!!form.endTime?form.et:'请选择'}}</text>
 				<u-icon slot="right" name="arrow-right"></u-icon>
 			</u-form-item>
-			<u-form-item v-if="!!form.deptId" label="所属教师" prop="teacherId" borderBottom
-				@click="teacherPickerShow = true; ">
-				<text>{{!!form.teacherId?form.teacherName:'请选择'}}</text>
-				<u-icon slot="right" name="arrow-right"></u-icon>
+			<u-form-item label="请假事由" prop="name" borderBottom>
+				<u--input v-model="form.reason" border="none" placeholder="填写请假事由"></u--input>
 			</u-form-item>
-			<u-form-item label="班级名称" prop="name" borderBottom>
-				<u--input v-model="form.name" border="none" placeholder="班级名称"></u--input>
+			<u-form-item label="辅导员审批" borderBottom>
+				<u-tag size="mini" :text="classInfo.teacherName" plain></u-tag>
 			</u-form-item>
-			<u-form-item label="备注" prop="remark" borderBottom>
-				<u-textarea v-model="form.remark" count placeholder="备注" height="80" border="none" holdKeyboard
+			<u-form-item label="院长审批" prop="remark" borderBottom>
+				<u-textarea v-model="form.approverThen" count placeholder="备注" height="80" border="none" holdKeyboard
 					autoHeight></u-textarea>
+			</u-form-item>
+			<u-form-item label="抄送" borderBottom>
+				<u-tag size="mini" :text="user.nickName" plain></u-tag>
 			</u-form-item>
 		</u--form>
 		<u-button type="primary" text="提交新审批" @click="createApprove"></u-button>
@@ -45,11 +45,18 @@
 	import {
 		listApprover
 	} from '@/api/approval/approver'
+	import {
+		getRecord
+	} from '@/api/class/record'
+	import {
+		addLeave
+	} from '@/api/leaveApplication/leave'
 	export default {
 		onLoad() {
 			this.user = this.$store.state.user.user
 			this.getApprover()
 			this.getDict()
+			this.getClass()
 		},
 		data() {
 			return {
@@ -60,6 +67,7 @@
 				approveMethodList: [],
 				approverList: [],
 				form: {},
+				classInfo: {},
 
 
 			}
@@ -86,7 +94,7 @@
 				this.form.st = this.result(e.value, e.mode)
 				this.startTimeShow = false;
 			},
-			setEndTime(e){
+			setEndTime(e) {
 				this.form.endTime = e.value
 				this.form.et = this.result(e.value, e.mode)
 				this.endTimeShow = false;
@@ -105,7 +113,20 @@
 							uni.navigateBack()
 						})
 					}
-
+				})
+			},
+			getClass() {
+				const classId = this.$store.state.user.user.classId
+				if (!classId) {
+					this.$modal.confirm('当前未加入任何班级！请先加入班级！').then(() => {
+						uni.navigateBack()
+					}).catch(() => {
+						uni.navigateBack()
+					})
+					return
+				}
+				getRecord(classId).then(res => {
+					this.classInfo = res.data
 				})
 			},
 			getDict() {
@@ -114,7 +135,36 @@
 				})
 			},
 			createApprove() {
+				this.$modal.loading("提交中")
+				this.form.studentId = this.$store.state.user.user.userId
+				this.form.approverId = this.classInfo.teacherId
+				const approver = []
+				if (!!this.form.approverThen) {
+					approver = [{
+							"id": this.form.approverId
+						},
+						{
+							"id": this.form.approverThen
+						}, {
+							"id": this.form.studentId
+						}
+					]
+				} else {
+					approver = [{
+							"id": this.form.approverId
+						},
+						{
+							"id": this.form.studentId
+						}
+					]
+				}
 
+				this.form.approver = approver
+				addLeave(this.form).then(res => {
+					this.$modal.msgSuccess(res.msg)
+				}).finally(() => {
+					this.$modal.closeLoading()
+				})
 			},
 			approvePickerConfirm(e) {
 				const index = e.indexs[0]
@@ -127,6 +177,11 @@
 
 	};
 </script>
+<style scoped>
+	::v-deep .u-tag--primary--plain {
+		width: fit-content;
+	}
+</style>
 <style>
 	page {
 		display: flex;
