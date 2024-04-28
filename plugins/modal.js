@@ -33,13 +33,13 @@ export default {
 		})
 	},
 	// 确认窗体
-	confirm(content, title) {
+	confirm(content, title,confirmText,cancelText) {
 		return new Promise((resolve, reject) => {
 			uni.showModal({
 				title: title || '系统提示',
 				content: content,
-				cancelText: '取消',
-				confirmText: '确定',
+				cancelText: cancelText||'取消',
+				confirmText: confirmText||'确认',
 				success: function(res) {
 					if (res.confirm) {
 						resolve(res.confirm)

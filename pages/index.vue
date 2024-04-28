@@ -49,8 +49,10 @@
 
 		<view class="tool" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</view>
 		<view class="tool" v-if="roleKey==='student'&&checkInfoNow==null" @click="checkMyCheckin">查询签到</view>
-		<view class="tool" v-if="roleKey!=='student'" @click="toMyApprove">我的审批（<span :class="approvalNum?`approval-num`:''">{{approvalNum}}</span>）</view>
+		<view class="tool" v-if="roleKey!=='student'" @click="toMyApprove">我的审批（<span
+				:class="approvalNum?`approval-num`:''">{{approvalNum}}</span>）</view>
 		<view class="tool" v-else @click="toCreateApprove">发起审批</view>
+		<view class="tool" v-if="roleKey==='student'" @click="toStudentApprove">我的审批</view>
 
 		<view v-if="checkInfoNow!=null" class="check-in-box" @click="checkInDetail">
 			<view class="name text-black">{{checkInfoNow.courseName}}</view>
@@ -85,7 +87,19 @@
 	import {
 		getRecordNum
 	} from '@/api/approval/record'
+	import {
+		getNotificationNum
+	} from '@/api/notification/info'
 	export default {
+		onShow() {
+			this.getDict()
+			this.getCourseList()
+			this.getCheckIn()
+			this.getNotification()
+			if (this.roleKey !== 'student') {
+				this.getMyApprovel()
+			}
+		},
 		onLoad: function() {
 			console.log(this.$store.state.user);
 			this.roleKey = this.$store.state.user.user.roles[0].roleKey
@@ -95,15 +109,11 @@
 			wsRequest.init(url, time);
 
 			this.watchSocket();
-			if (this.roleKey !== 'student') {
-				this.getMyApprovel()
-			}
+
 		},
 		onReady() {
 			this.BASE_URL = config.baseUrl
-			this.getDict()
-			this.getCourseList()
-			this.getCheckIn()
+
 
 		},
 		data() {
@@ -125,6 +135,18 @@
 			}
 		},
 		methods: {
+			getNotification() {
+				getNotificationNum({
+					recipientId: this.$store.state.user.user.userId
+				}).then(res => {
+					if (!!res.data && res.data !== 0) {
+						uni.setTabBarBadge({
+							index: 2,
+							text: res.data + ""
+						})
+					}
+				})
+			},
 			checkMyCheckin() {
 				this.$modal.loading("加载中")
 				this.getCheckIn()
@@ -259,8 +281,11 @@
 					this.approvalNum = res.data
 				})
 			},
-			toMyApprove(){
+			toMyApprove() {
 				this.$tab.navigateTo(`/pages/approve/approve`)
+			},
+			toStudentApprove() {
+
 			}
 		}
 	}
