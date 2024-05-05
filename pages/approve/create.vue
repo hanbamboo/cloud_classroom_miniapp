@@ -11,11 +11,11 @@
 				<text>{{!!form.type?form.typeName:'请选择'}}</text>
 				<u-icon slot="right" name="arrow-right"></u-icon>
 			</u-form-item>
-			<u-form-item label="开始时间" prop="startTime" borderBottom @click="startTimeShow = true; ">
+			<u-form-item label="开始时间" prop="startTime" borderBottom @click="startTimeShow = true;">
 				<text>{{!!form.startTime?form.st:'请选择'}}</text>
 				<u-icon slot="right" name="arrow-right"></u-icon>
 			</u-form-item>
-			<u-form-item label="结束时间" prop="endTime" borderBottom @click="endTimeShow = true; ">
+			<u-form-item label="结束时间" prop="endTime" borderBottom @click="endTimeShow = true;">
 				<text>{{!!form.endTime?form.et:'请选择'}}</text>
 				<u-icon slot="right" name="arrow-right"></u-icon>
 			</u-form-item>
@@ -25,9 +25,9 @@
 			<u-form-item label="辅导员审批" borderBottom>
 				<u-tag size="mini" :text="classInfo.teacherName" plain></u-tag>
 			</u-form-item>
-			<u-form-item label="院长审批" prop="remark" borderBottom>
-				<u-textarea v-model="form.approverThen" count placeholder="备注" height="80" border="none" holdKeyboard
-					autoHeight></u-textarea>
+			<u-form-item prop="remark" borderBottom v-for="(itme,index) in approverList" :label="`审批人${index + 1}`"
+				:key="index">
+				<u-tag size="mini" :text="itme.approverName" plain></u-tag>
 			</u-form-item>
 			<u-form-item label="抄送" borderBottom>
 				<u-tag size="mini" :text="user.nickName" plain></u-tag>
@@ -107,11 +107,11 @@
 					if (!!res.data || !!res.rows) {
 						this.approverList = res.data || res.rows
 					} else {
-						this.$modal.confirm('当前没有审批人！请联系管理员！').then(() => {
-							uni.navigateBack()
-						}).catch(() => {
-							uni.navigateBack()
-						})
+						// this.$modal.confirm('当前没有审批人！请联系管理员！').then(() => {
+						// 	uni.navigateBack()
+						// }).catch(() => {
+						// 	uni.navigateBack()
+						// })
 					}
 				})
 			},
@@ -138,32 +138,24 @@
 				this.$modal.loading("提交中")
 				this.form.studentId = this.$store.state.user.user.userId
 				this.form.approverId = this.classInfo.teacherId
-				const approver = []
-				if (!!this.form.approverThen) {
-					approver = [{
-							"id": this.form.approverId
-						},
-						{
-							"id": this.form.approverThen
-						}, {
-							"id": this.form.studentId
-						}
-					]
-				} else {
-					approver = [{
-							"id": this.form.approverId
-						},
-						{
-							"id": this.form.studentId
-						}
-					]
-				}
-
+				let approver = []
+				this.approverList.forEach(item => {
+					approver.push({
+						"id": item.approverId
+					})
+				})
+				approver.unshift({
+					"id": this.form.approverId
+				})
+				approver.push({
+					"id": this.form.studentId
+				})
 				this.form.approver = approver
 				addLeave(this.form).then(res => {
 					this.$modal.msgSuccess(res.msg)
 				}).finally(() => {
 					this.$modal.closeLoading()
+					uni.navigateBack()
 				})
 			},
 			approvePickerConfirm(e) {

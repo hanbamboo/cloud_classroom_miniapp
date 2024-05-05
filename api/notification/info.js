@@ -8,6 +8,15 @@ export function listInfo(query) {
     params: query
   })
 }
+
+export function listAll(query) {
+  return request({
+    url: '/notification/info/all',
+    method: 'get',
+    params: query
+  })
+}
+
 export function getNotificationNum(query) {
   return request({
     url: '/notification/info/app/num',

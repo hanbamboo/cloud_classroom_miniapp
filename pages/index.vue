@@ -49,10 +49,10 @@
 
 		<view class="tool" v-if="roleKey!=='student'" @click="toCreateCheckin">发起签到</view>
 		<view class="tool" v-if="roleKey==='student'&&checkInfoNow==null" @click="checkMyCheckin">查询签到</view>
-		<view class="tool" v-if="roleKey!=='student'" @click="toMyApprove">我的审批（<span
+		<view class="tool" v-if="roleKey!=='student'" @click="toCreateNotification">发布通知</view>
+		<view class="tool" v-if="roleKey==='student'" @click="toCreateApprove">发起审批</view>
+		<view class="tool" @click="toMyApprove">我的审批（<span
 				:class="approvalNum?`approval-num`:''">{{approvalNum}}</span>）</view>
-		<view class="tool" v-else @click="toCreateApprove">发起审批</view>
-		<view class="tool" v-if="roleKey==='student'" @click="toStudentApprove">我的审批</view>
 
 		<view v-if="checkInfoNow!=null" class="check-in-box" @click="checkInDetail">
 			<view class="name text-black">{{checkInfoNow.courseName}}</view>
@@ -85,7 +85,7 @@
 		parseTime
 	} from '@/utils/ruoyi'
 	import {
-		getRecordNum
+		getRecordNum,getRecordApp
 	} from '@/api/approval/record'
 	import {
 		getNotificationNum
@@ -96,9 +96,8 @@
 			this.getCourseList()
 			this.getCheckIn()
 			this.getNotification()
-			if (this.roleKey !== 'student') {
-				this.getMyApprovel()
-			}
+			this.getMyApprovel()
+
 		},
 		onLoad: function() {
 			console.log(this.$store.state.user);
@@ -143,6 +142,10 @@
 						uni.setTabBarBadge({
 							index: 2,
 							text: res.data + ""
+						})
+					} else {
+						uni.removeTabBarBadge({
+							index: 2
 						})
 					}
 				})
@@ -277,15 +280,40 @@
 				this.$tab.navigateTo(`/pages/approve/create`)
 			},
 			getMyApprovel() {
-				getRecordNum(this.$store.state.user.user.userId).then(res => {
-					this.approvalNum = res.data
+				// if(this.roleKey !== 'student'){
+					// getRecordNum(this.$store.state.user.user.userId).then(res => {
+					// 	this.approvalNum = res.data
+					// })
+				// }
+				
+				getRecordApp({
+					approverId: this.$store.state.user.user.userId
+				}).then(res=>{
+					let data = res.data || []
+					data = data.filter(item=>item.finalStatus == 0)
+						let result = []
+						for (var i = 0; i < data.length ; i++) {
+							const m = data[i]
+							if(i==0){
+								result.push(m)
+								continue
+							}
+							const s = data[i-1]
+							if( m.leaveId != s.leaveId){
+									result.push(m)
+							}
+						}
+						this.approvalNum = result.length
+					
+					
 				})
+				
 			},
 			toMyApprove() {
 				this.$tab.navigateTo(`/pages/approve/approve`)
 			},
-			toStudentApprove() {
-
+			toCreateNotification(){
+				this.$tab.navigateTo(`/pages/notification/create`)
 			}
 		}
 	}
