@@ -147,6 +147,13 @@
   	{
   		"navigationBarTitleText" : "发布新通知"
   	}
+  },
+  {
+  	"path" : "pages/checkin/create",
+  	"style" : 
+  	{
+  		"navigationBarTitleText" : "发起新签到"
+  	}
   }
   ],
   "tabBar": {

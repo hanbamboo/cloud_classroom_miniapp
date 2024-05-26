@@ -3,6 +3,7 @@
 		<view class="title">
 			<view class="courseName text-black">{{checkInfoNow.courseName}}</view>
 			<view class="teacherName text-grey">{{checkInfoNow.teacherName}}</view>
+			<view v-if="checkInfoNow.method===3" class="teacherName text-grey2" style="text-decoration: underline" @click="showQrcodeImage">查看二维码</view>
 		</view>
 		<u-transition :show="true">
 
@@ -13,7 +14,11 @@
 					:time="checkInfoNow.timeDiff" format="mm:ss" @finish="finishCount"></u-count-down></u-button>
 
 		</u-transition>
-
+    <u-overlay :show="imageView" @click="imageView = false">
+      <view class="overlay-warp">
+        <canvas style="width: 300px; height: 300px;" canvas-id="myQrcode"></canvas>
+      </view>
+    </u-overlay>
 		<view class="afterCheckin" v-if="isCheckIn">
 			<view class="time">
 				签到时间：{{checkinRecordMine.checkinTime}}
@@ -30,7 +35,7 @@
 					  fontSize:'18px',
 					  fontWeight:'bold',
 					  transform:'scale(1.05)',
-					  
+
 				  }" :inactiveStyle="{
 				  	 color:'#aaaaaa',
 					 transition:'0.3s',
@@ -69,6 +74,7 @@
 
 <script>
 	import wsRequest from '@/utils/websocket'
+  import drawQrcode from 'weapp-qrcode'
 
 	import config from '@/config'
 	import {
@@ -95,6 +101,7 @@
 				deviceInfo: null,
 				isCheckIn: false,
 				outTimeCheck: false,
+        imageView: false,
 				checkinRecordMine: null,
 				tabsList: [{
 						name: '已签到',
@@ -132,6 +139,17 @@
 
 		},
 		methods: {
+      showQrcodeImage(){
+        if(this.checkInfoNow.method===3&&this.checkInfoNow.source){
+          this.imageView = true
+          drawQrcode({
+            width: 300,
+            height: 300,
+            canvasId: 'myQrcode',
+            text: this.checkInfoNow.source
+          })
+        }
+      },
 			finishCount(){
 				console.log('over');
 				const time1 = new Date().getTime();
@@ -149,8 +167,8 @@
 					this.outTimeCheck = false;
 					this.checkInfoNow = null
 				}
-				
-				
+
+
 			},
 			tabsChange(index) {
 				this.memberList = []
@@ -203,7 +221,7 @@
 						})
 					})
 				}
-				
+
 			},
 			getStudent() {
 				listRecordAppCheckin({
@@ -347,6 +365,12 @@
 	::v-deep .u-tabs__wrapper__nav__item {
 		flex: 1;
 	}
+  .overlay-warp{
+    position: absolute;
+    height: 100%;
+    top: 30%;
+    left: 10%;
+  }
 </style>
 <style lang="scss">
 	page {

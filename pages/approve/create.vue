@@ -22,6 +22,10 @@
 			<u-form-item label="请假事由" prop="name" borderBottom>
 				<u--input v-model="form.reason" border="none" placeholder="填写请假事由"></u--input>
 			</u-form-item>
+      <u-form-item label="附件" prop="name" borderBottom>
+        <u-upload :fileList="fileList" @afterRead="afterRead" @delete="deletePic"  @beforeRead="beforeRead"
+                  :maxCount="10" multiple :previewFullImage="true" accept="image"></u-upload>
+			</u-form-item>
 			<u-form-item label="辅导员审批" borderBottom>
 				<u-tag size="mini" :text="classInfo.teacherName" plain></u-tag>
 			</u-form-item>
@@ -51,6 +55,9 @@
 	import {
 		addLeave
 	} from '@/api/leaveApplication/leave'
+  import config from '../../config'
+  import {getToken} from "../../utils/auth";
+  import {commpnUpload} from "../../api/utils";
 	export default {
 		onLoad() {
 			this.user = this.$store.state.user.user
@@ -61,15 +68,15 @@
 		data() {
 			return {
 				user: null,
+        BASE_URL: config.baseUrl,
 				approvePickerShow: false,
 				startTimeShow: false,
 				endTimeShow: false,
 				approveMethodList: [],
 				approverList: [],
+        fileList: [],
 				form: {},
 				classInfo: {},
-
-
 			}
 		},
 		methods: {
@@ -134,7 +141,53 @@
 					this.approveMethodList.push(res.data)
 				})
 			},
-			createApprove() {
+      // 删除图片
+      deletePic(event) {
+        this.fileList.splice(event.index, 1)
+      },
+      async beforeRead() {
+      },
+      // 新增图片
+      async afterRead(event) {
+        let lists = [].concat(event.file)
+        let fileListLen = this.fileList.length
+        lists.map((item) => {
+          this[`fileList${event.name}`].push({
+            ...item,
+            status: 'uploading',
+            message: '上传中'
+          })
+        })
+        for (let i = 0; i < lists.length; i++) {
+          const result = await this.uploadFilePromise(lists[i].url)
+          let item = this.fileList[fileListLen]
+          this.fileList.splice(fileListLen, 1, Object.assign(item, {
+            status: 'success',
+            message: '',
+            url: result
+          }))
+          fileListLen++
+        }
+
+      },
+      uploadFilePromise(url) {
+        return new Promise((resolve, reject) => {
+          let a = uni.uploadFile({
+            url: this.BASE_URL + '/common/upload', // 仅为示例，非真实的接口地址
+            filePath: url,
+            name: 'file',
+            header: {
+              Authorization: 'Bearer ' + getToken()
+            },
+            success: (res) => {
+              setTimeout(() => {
+                resolve(JSON.parse(res.data))
+              }, 1000)
+            }
+          });
+        })
+      },
+      createApprove() {
 				this.$modal.loading("提交中")
 				this.form.studentId = this.$store.state.user.user.userId
 				this.form.approverId = this.classInfo.teacherId
@@ -150,6 +203,7 @@
 				approver.push({
 					"id": this.form.studentId
 				})
+        this.form.img = this.fileList.map(item => item.url.fileName).join(',')
 				this.form.approver = approver
 				addLeave(this.form).then(res => {
 					this.$modal.msgSuccess(res.msg)

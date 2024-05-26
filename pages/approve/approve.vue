@@ -6,6 +6,9 @@
 					<span class="usetime text-grey2">(用时{{recordData.useTime}}天)</span>
 				</view>
 				<view class="reason text-gray1">{{recordData.reason}}</view>
+        <view v-if="!!recordData.imgList">附件：
+          <u-upload :fileList="recordData.imgList" disabled></u-upload>
+        </view>
 				<view class="time text-grey2">{{recordData.startTime}}~{{recordData.endTime}}</view>
 				<view class="container">
 					<u-steps :current="recordData.currentDot" direction="column" activeIcon="checkmark"
@@ -23,6 +26,9 @@
 			<view>请假人：{{item.studentName}}</view>
 			<view>请假类型：{{leaveTypeList.find(i=>i.dictValue==item.type).dictLabel}}</view>
 			<view>请假原因：{{item.reason}}</view>
+			<view v-if="!!item.imgList">附件：
+        <u-upload :fileList="item.imgList" disabled></u-upload>
+      </view>
 			<view>起止时间：{{item.startTime}}-{{item.endTime}}</view>
 			<view>总用时：{{item.useTime}}天</view>
 			<view v-if="!!item.forwardId&&item.forwardId!=item.studentId">下级审批人：{{item.forwardName}}</view>
@@ -73,10 +79,13 @@
 	import {
 		parseTime
 	} from '@/utils/ruoyi'
-	export default {
+  import config from '../../config'
+
+  export default {
 		data() {
 			return {
 				teacherId: null,
+        BASE_URL: config.baseUrl,
 				approvalList: [],
 				leaveTypeList: [],
 				approvalTypeList: [],
@@ -114,18 +123,18 @@
 
 					// 创建一个空数组来存放选取的记录
 					const selectedTasks = [];
-					
+
 					// 创建一个对象来存放已经处理的任务，键为 taskId
 					const processedTasks = {};
-					
+
 					// 遍历任务数组
 					records.forEach(task => {
 					    // 如果当前任务已经被处理过，则跳过
 					    if (processedTasks[task.leaveId]) return;
-					
+
 					    // 检查当前任务中是否存在 status 为 0 的记录
 					    const hasStatusZero = records.some(t => t.leaveId === task.leaveId && t.status === 0);
-					
+
 					    if (hasStatusZero) {
 					        // 如果存在 status 为 0 的记录，则选取第一个满足条件的记录，并将当前任务标记为已处理
 					        const selectedTask = records.find(t => t.leaveId === task.leaveId && t.status === 0);
@@ -145,6 +154,12 @@
 					this.approvalList.forEach(item => {
 						item.finalStatusName = this.approvalTypeList.find(i => i.dictValue == item
 							.finalStatus).dictLabel
+            item.imgList = item.img.split(',').map(i=> {
+              const a = {
+                url:this. BASE_URL + i
+              }
+              return a
+            })
 						var startDate = new Date(item.startTime); // 开始日期
 						var endDate = new Date(item.endTime); // 结束日期
 						var startTimeStamp = startDate.getTime() / 1000; // 开始日期的时间戳（秒）
@@ -192,7 +207,7 @@
 							source: 0
 						})
 					}
-					
+
 				} else if (this.approvalName === '驳回') {
 					if (!this.comment) {
 						this.comment = this.approvalName
@@ -223,7 +238,7 @@
 						source: 0
 					})
 
-					
+
 				} else if (this.approvalName === '移交') {
 					const recipientId = []
 					recipientId.push(this.detail.forwardId)
@@ -245,7 +260,7 @@
 						priority: 10,
 						source: 0
 					})
-					
+
 				}
 
 			},
@@ -297,6 +312,7 @@
 					}
 					this.recordData.approverName = item.studentName
 					this.recordData.approverId = item.studentId
+					this.recordData.imgList = item.imgList
 					this.recordData.typeName = this.leaveTypeList.find(i => i.dictValue == this.recordData.type)
 						.dictLabel
 					this.recordData.statusName = this.approvalTypeList.find(i => i.dictValue == this.recordData
@@ -364,6 +380,9 @@
 			margin: 10px;
 		}
 	}
+  ::v-deep .u-upload__button{
+    display: none!important;
+  }
 </style>
 <style>
 	page {
