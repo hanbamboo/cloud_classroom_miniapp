@@ -91,11 +91,12 @@ export default {
       this.courseChooseShow = false
     },
     addCheckInConfirm() {
-      if (this.form.method === 1 && !this.pwd) {
+
+      if (this.form.method == 1 && !this.pwd) {
         this.$modal.showToast("密码未填写")
         return
       }
-      if (this.form.method === 1) {
+      if (this.form.method == 1) {
         this.form.source = JSON.stringify({
           pwd: this.pwd
         })
